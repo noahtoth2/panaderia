@@ -1,23 +1,32 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.user import UserCreate, UserLogin, UserOut
-from app.crud import user as crud_user
-from app.core import security
 from app.database import get_db
+from app.schemas.user import UserCreate, UserOut
+from app.crud.user import create_user, get_user_by_username
+from app.schemas.user import UserLogin
+from app.core.security import verify_password, create_access_token
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
+
+MASTER_KEY = "super-registro-123"
 
 @router.post("/register", response_model=UserOut)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = crud_user.get_user_by_username(db, user.username)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    return crud_user.create_user(db, user)
+    if user.master_key != MASTER_KEY:
+        raise HTTPException(status_code=403, detail="Clave de administrador inválida")
 
-@router.post("/login")
+    existing_user = get_user_by_username(db, user.username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Este usuario ya existe")
+
+    return create_user(db, user)
+@router.post("/auth/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = crud_user.authenticate_user(db, user.username, user.password)
-    if not db_user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    access_token = security.create_access_token({"sub": db_user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    db_user = get_user_by_username(db, user.username)
+    if not db_user or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+
+    token = create_access_token(data={"sub": db_user.username, "role": db_user.role})
+    return {"access_token": token, "token_type": "bearer", "role": db_user.role}
