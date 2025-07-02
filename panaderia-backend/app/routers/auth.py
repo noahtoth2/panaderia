@@ -5,12 +5,10 @@ from app.schemas.user import UserCreate, UserOut
 from app.crud.user import create_user, get_user_by_username
 from app.schemas.user import UserLogin
 from app.core.security import verify_password, create_access_token
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
 
-router = APIRouter()
+router = APIRouter(prefix="/auth")  # ✅ prefijo agregado
 
-MASTER_KEY = "super-registro-123"
+MASTER_KEY = "123"
 
 @router.post("/register", response_model=UserOut)
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -22,7 +20,8 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Este usuario ya existe")
 
     return create_user(db, user)
-@router.post("/auth/login")
+
+@router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = get_user_by_username(db, user.username)
     if not db_user or not verify_password(user.password, db_user.hashed_password):
