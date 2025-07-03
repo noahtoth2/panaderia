@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@tsparticles/engine": "^3.8.1",
+    "lucide-svelte": "^0.525.0",
+    "tsparticles": "^3.8.1"
+  }
+}
