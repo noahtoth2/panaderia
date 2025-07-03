@@ -1,8 +1,10 @@
 <script>
+  import { User, Lock, ShieldCheck, KeyRound } from 'lucide-svelte';
+
   let username = "";
   let password = "";
   let adminPassword = "";
-  let role = "ventas"; // valor por defecto
+  let role = "ventas";
 
   let error = "";
   let success = "";
@@ -11,91 +13,106 @@
     error = "";
     success = "";
 
-    const response = await fetch("http://localhost:8000/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        role,
-        master_key: adminPassword
-      })
-    });
+    try {
+      const response = await fetch("http://192.168.11.3:8000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          password,
+          role,
+          master_key: adminPassword
+        })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok) {
-      success = "✅ Usuario registrado correctamente.";
-      setTimeout(() => window.location.hash = "/", 2000); // redirige al login
-    } else {
-      error = data.detail || "Error en el registro.";
+      if (response.ok) {
+        success = "✅ Usuario registrado correctamente.";
+        setTimeout(() => window.location.hash = "/", 2000);
+      } else {
+        error = data.detail || "Error en el registro.";
+      }
+    } catch (err) {
+      error = "Error al conectar con el servidor.";
     }
   };
 
   const goToLogin = () => {
     window.location.hash = "/";
-  }
+  };
 </script>
 
-<style>
-  input, select, button {
-    font-size: 1rem;
-  }
-</style>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-100 via-white to-blue-100 px-4">
+  <div class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Registrar Usuario</h2>
 
-<div class="w-full max-w-sm mx-auto mt-16">
-  <h2 class="text-2xl font-bold mb-4 text-center">Registrar Usuario</h2>
+    {#if error}
+      <div class="text-red-600 text-sm text-center mb-4 animate-pulse">{error}</div>
+    {/if}
+    {#if success}
+      <div class="text-green-600 text-sm text-center mb-4 animate-bounce">{success}</div>
+    {/if}
 
-  {#if error}
-    <p class="text-red-500 text-sm mb-2">{error}</p>
-  {/if}
-  {#if success}
-    <p class="text-green-500 text-sm mb-2">{success}</p>
-  {/if}
+    <!-- Usuario -->
+    <div class="mb-4 relative">
+      <input
+        type="text"
+        placeholder="Nombre de usuario"
+        bind:value={username}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      />
+      <User class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
-  <input
-    class="w-full border rounded px-3 py-2 mb-2"
-    placeholder="Nombre de usuario"
-    bind:value={username}
-  />
+    <!-- Contraseña -->
+    <div class="mb-4 relative">
+      <input
+        type="password"
+        placeholder="Contraseña"
+        bind:value={password}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      />
+      <Lock class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
-  <input
-    class="w-full border rounded px-3 py-2 mb-2"
-    placeholder="Contraseña"
-    type="password"
-    bind:value={password}
-  />
+    <!-- Clave administrador -->
+    <div class="mb-4 relative">
+      <input
+        type="password"
+        placeholder="Clave de administrador"
+        bind:value={adminPassword}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      />
+      <KeyRound class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
-  <input
-    class="w-full border rounded px-3 py-2 mb-2"
-    placeholder="Clave de administrador"
-    type="password"
-    bind:value={adminPassword}
-  />
+    <!-- Selector de rol -->
+    <div class="mb-6 relative">
+      <select
+        bind:value={role}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      >
+        <option value="administrador">Administrador</option>
+        <option value="jefe_bodega">Jefe de Bodega</option>
+        <option value="produccion">Producción</option>
+        <option value="ventas">Ventas</option>
+      </select>
+      <ShieldCheck class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
-  <select
-    class="w-full border rounded px-3 py-2 mb-4"
-    bind:value={role}
-  >
-    <option value="administrador">Administrador</option>
-    <option value="jefe_bodega">Jefe de Bodega</option>
-    <option value="produccion">Producción</option>
-    <option value="ventas">Ventas</option>
-  </select>
+    <!-- Botón de registro -->
+    <button
+      on:click={register}
+      class="w-full bg-gradient-to-r from-blue-500 to-orange-400 text-white font-semibold py-3 rounded-lg transition-transform hover:scale-105 active:scale-95 shadow-lg"
+    >
+      Registrar
+    </button>
 
-  <button
-    class="w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700"
-    on:click={register}
-  >
-    Registrar
-  </button>
-
-  <button
-    class="w-full mt-2 text-blue-600 hover:underline text-sm"
-    on:click={goToLogin}
-  >
-    ¿Ya tienes cuenta? Iniciar sesión
-  </button>
+    <!-- Volver al login -->
+    <p class="mt-4 text-sm text-gray-700 text-center">
+      ¿Ya tienes cuenta?
+      <button on:click={goToLogin} class="text-blue-600 hover:underline font-semibold">Iniciar sesión</button>
+    </p>
+  </div>
 </div>

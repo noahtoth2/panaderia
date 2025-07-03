@@ -1,7 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
   import { push } from 'svelte-spa-router';
-  import Particles from 'tsparticles-svelte';
+  import { User, Lock } from 'lucide-svelte';
 
   let username = '';
   let password = '';
@@ -9,7 +8,7 @@
 
   async function login() {
     try {
-      const res = await fetch('http://localhost:8000/auth/login', {
+      const res = await fetch('http://192.168.11.3:8000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -28,72 +27,44 @@
   }
 </script>
 
-<!-- Fondo de partículas -->
-<Particles id="tsparticles" options={{
-  fullScreen: { enable: true },
-  background: { color: "#0f172a" },
-  particles: {
-    number: { value: 50 },
-    color: { value: ["#f97316", "#3b82f6", "#ffffff"] },
-    shape: { type: "circle" },
-    opacity: { value: 0.8 },
-    size: { value: 3 },
-    move: { enable: true, speed: 1 },
-  },
-  interactivity: {
-    events: {
-      onHover: { enable: true, mode: "repulse" },
-      onClick: { enable: true, mode: "push" }
-    },
-    modes: {
-      repulse: { distance: 100 },
-      push: { quantity: 4 }
-    }
-  },
-  detectRetina: true
-}} />
-
-<!-- Caja de login -->
-<div class="relative z-10 flex justify-center items-center min-h-screen">
-  <div class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-xl w-full max-w-sm text-center">
-    <h2 class="text-3xl font-bold mb-6 text-gray-800">Iniciar Sesión</h2>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-100 via-white to-blue-100 px-4">
+  <div class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
 
     {#if error}
-      <p class="text-red-600 text-sm mb-4">{error}</p>
+      <div class="text-red-600 text-sm text-center mb-4 animate-pulse">{error}</div>
     {/if}
 
-    <input
-      type="text"
-      bind:value={username}
-      placeholder="Usuario"
-      class="w-full mb-3 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-    />
+    <div class="mb-4 relative">
+      <input
+        type="text"
+        placeholder="Usuario"
+        bind:value={username}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      />
+      <User class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
-    <input
-      type="password"
-      bind:value={password}
-      placeholder="Contraseña"
-      class="w-full mb-4 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-    />
+    <div class="mb-6 relative">
+      <input
+        type="password"
+        placeholder="Contraseña"
+        bind:value={password}
+        class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
+      />
+      <Lock class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 w-5 h-5" />
+    </div>
 
     <button
       on:click={login}
-      class="w-full bg-gradient-to-r from-blue-500 to-orange-400 text-white py-2 rounded-lg font-semibold transform transition hover:scale-105 active:scale-95 shadow-md hover:shadow-lg"
+      class="w-full bg-gradient-to-r from-blue-500 to-orange-400 text-white font-semibold py-3 rounded-lg transition-transform hover:scale-105 active:scale-95 shadow-lg"
     >
       Iniciar sesión
     </button>
 
-    <p class="mt-4 text-sm text-gray-700">
+    <p class="mt-4 text-sm text-gray-700 text-center">
       ¿No tienes cuenta?
-      <a href="#/register" class="text-blue-600 hover:underline">Regístrate</a>
+      <a href="#/register" class="text-blue-600 hover:underline font-semibold">Regístrate</a>
     </p>
   </div>
 </div>
-
-<style>
-  :global(body) {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-  }
-</style>
