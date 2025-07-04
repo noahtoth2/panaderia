@@ -5,6 +5,12 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    role = Column(String)
+
+    # Máximo 50 caracteres para evitar abuso y optimizar índices
+    username = Column(String(50), unique=True, index=True, nullable=False)
+
+    # Hash de bcrypt suele ser ~60, pero damos margen hasta 128
+    hashed_password = Column(String(128), nullable=False)
+
+    # Role limitado a 20 caracteres: "administrador", "ventas", etc.
+    role = Column(String(20), nullable=False)

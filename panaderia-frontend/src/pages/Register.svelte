@@ -8,10 +8,21 @@
 
   let error = "";
   let success = "";
+  let fieldErrors = {
+    username: "",
+    password: "",
+    master_key: "",
+    role: ""
+  };
 
-  const register = async () => {
+  const clearErrors = () => {
     error = "";
     success = "";
+    fieldErrors = { username: "", password: "", master_key: "", role: "" };
+  };
+
+  const register = async () => {
+    clearErrors();
 
     try {
       const response = await fetch("http://192.168.11.3:8000/auth/register", {
@@ -31,7 +42,14 @@
         success = "✅ Usuario registrado correctamente.";
         setTimeout(() => window.location.hash = "/", 2000);
       } else {
-        error = data.detail || "Error en el registro.";
+        if (response.status === 422 && Array.isArray(data.detail)) {
+          data.detail.forEach(e => {
+            const field = e.loc.at(-1);
+            fieldErrors[field] = e.msg;
+          });
+        } else {
+          error = data.detail || "Error en el registro.";
+        }
       }
     } catch (err) {
       error = "Error al conectar con el servidor.";
@@ -55,7 +73,7 @@
     {/if}
 
     <!-- Usuario -->
-    <div class="mb-4 relative">
+    <div class="mb-2 relative">
       <input
         type="text"
         placeholder="Nombre de usuario"
@@ -64,9 +82,12 @@
       />
       <User class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if fieldErrors.username}
+      <div class="text-red-500 text-xs mb-2">{fieldErrors.username}</div>
+    {/if}
 
     <!-- Contraseña -->
-    <div class="mb-4 relative">
+    <div class="mb-2 relative">
       <input
         type="password"
         placeholder="Contraseña"
@@ -75,9 +96,12 @@
       />
       <Lock class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if fieldErrors.password}
+      <div class="text-red-500 text-xs mb-2">{fieldErrors.password}</div>
+    {/if}
 
     <!-- Clave administrador -->
-    <div class="mb-4 relative">
+    <div class="mb-2 relative">
       <input
         type="password"
         placeholder="Clave de administrador"
@@ -86,9 +110,12 @@
       />
       <KeyRound class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if fieldErrors.master_key}
+      <div class="text-red-500 text-xs mb-2">{fieldErrors.master_key}</div>
+    {/if}
 
     <!-- Selector de rol -->
-    <div class="mb-6 relative">
+    <div class="mb-4 relative">
       <select
         bind:value={role}
         class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none text-sm"
@@ -100,6 +127,9 @@
       </select>
       <ShieldCheck class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if fieldErrors.role}
+      <div class="text-red-500 text-xs mb-4">{fieldErrors.role}</div>
+    {/if}
 
     <!-- Botón de registro -->
     <button

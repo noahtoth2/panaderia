@@ -4,9 +4,17 @@
 
   let username = '';
   let password = '';
-  let error = '';
+
+  let errorUsername = '';
+  let errorPassword = '';
+  let generalError = '';
 
   async function login() {
+    // Resetear errores
+    errorUsername = '';
+    errorPassword = '';
+    generalError = '';
+
     try {
       const res = await fetch('http://192.168.11.3:8000/auth/login', {
         method: 'POST',
@@ -15,14 +23,25 @@
       });
 
       const data = await res.json();
+
       if (res.ok) {
         localStorage.setItem('token', data.access_token);
         push('/dashboard');
       } else {
-        error = data.detail || 'Credenciales incorrectas';
+        if (typeof data.detail === 'string') {
+          generalError = data.detail;
+        } else if (Array.isArray(data.detail)) {
+          data.detail.forEach((err) => {
+            if (err?.loc?.includes('username')) errorUsername = err.msg;
+            else if (err?.loc?.includes('password')) errorPassword = err.msg;
+            else generalError = err.msg;
+          });
+        } else {
+          generalError = 'Error desconocido.';
+        }
       }
     } catch (err) {
-      error = 'Error de conexión con el servidor';
+      generalError = 'Error de conexión con el servidor.';
     }
   }
 </script>
@@ -31,11 +50,12 @@
   <div class="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md">
     <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
 
-    {#if error}
-      <div class="text-red-600 text-sm text-center mb-4 animate-pulse">{error}</div>
+    {#if generalError}
+      <div class="text-red-600 text-sm text-center mb-4 animate-pulse">{generalError}</div>
     {/if}
 
-    <div class="mb-4 relative">
+    <!-- Usuario -->
+    <div class="mb-2 relative">
       <input
         type="text"
         placeholder="Usuario"
@@ -44,8 +64,12 @@
       />
       <User class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if errorUsername}
+      <div class="text-red-500 text-xs mb-2 ml-1 animate-pulse">{errorUsername}</div>
+    {/if}
 
-    <div class="mb-6 relative">
+    <!-- Contraseña -->
+    <div class="mb-2 relative">
       <input
         type="password"
         placeholder="Contraseña"
@@ -54,7 +78,11 @@
       />
       <Lock class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400 w-5 h-5" />
     </div>
+    {#if errorPassword}
+      <div class="text-red-500 text-xs mb-4 ml-1 animate-pulse">{errorPassword}</div>
+    {/if}
 
+    <!-- Botón -->
     <button
       on:click={login}
       class="w-full bg-gradient-to-r from-blue-500 to-orange-400 text-white font-semibold py-3 rounded-lg transition-transform hover:scale-105 active:scale-95 shadow-lg"
